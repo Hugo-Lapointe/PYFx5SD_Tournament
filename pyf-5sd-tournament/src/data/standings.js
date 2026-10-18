@@ -1,26 +1,27 @@
 
 import { teams } from "./teams";
-import { matches } from "./matches";
 
-export function getStandings(division, group = null) {
-  const selectedTeams = teams.filter(
-    (team) =>
-      team.division === division &&
-      (group === null || team.group === group)
-  );
+export function getStandings(matches, division, group = null) {
+  const divisionTeams = teams.filter((team) => {
+    if (team.division !== division) return false;
 
-  const standings = selectedTeams.map((team) => {
-    const teamMatches = matches.filter(
-      (match) =>
+    if (division === "lower" && group) {
+      return team.group === group;
+    }
+
+    return true;
+  });
+
+  const standings = divisionTeams.map((team) => {
+    const teamMatches = matches.filter((match) => {
+      return (
         match.stage === "Round Robin" &&
-        match.status === "completed" &&
         match.division === division &&
+        match.status === "completed" &&
         (match.team1Id === team.id ||
-          match.team2Id === team.id) &&
-        typeof match.score1 === "number" &&
-        typeof match.score2 === "number" &&
-        match.score1 !== match.score2
-    );
+          match.team2Id === team.id)
+      );
+    });
 
     let wins = 0;
     let losses = 0;
@@ -30,33 +31,39 @@ export function getStandings(division, group = null) {
     teamMatches.forEach((match) => {
       const isTeam1 = match.team1Id === team.id;
 
-      const teamScore = isTeam1
-        ? match.score1
-        : match.score2;
+      const ownMaps = Number(
+        isTeam1 ? match.score1 : match.score2
+      );
 
-      const opponentScore = isTeam1
-        ? match.score2
-        : match.score1;
+      const opponentMaps = Number(
+        isTeam1 ? match.score2 : match.score1
+      );
 
-      if (teamScore > opponentScore) {
-        wins++;
-      } else {
-        losses++;
+      if (
+        !Number.isFinite(ownMaps) ||
+        !Number.isFinite(opponentMaps) ||
+        ownMaps === opponentMaps
+      ) {
+        return;
       }
 
-      // Round scores are stored separately
-      // from map wins.
-      if (
-        typeof match.rounds1 === "number" &&
-        typeof match.rounds2 === "number"
-      ) {
-        roundsWon += isTeam1
-          ? match.rounds1
-          : match.rounds2;
+      if (ownMaps > opponentMaps) wins++;
+      else losses++;
 
-        roundsLost += isTeam1
-          ? match.rounds2
-          : match.rounds1;
+      const ownRounds = isTeam1
+        ? match.rounds1
+        : match.rounds2;
+
+      const opponentRounds = isTeam1
+        ? match.rounds2
+        : match.rounds1;
+
+      if (
+        typeof ownRounds === "number" &&
+        typeof opponentRounds === "number"
+      ) {
+        roundsWon += ownRounds;
+        roundsLost += opponentRounds;
       }
     });
 
@@ -71,10 +78,13 @@ export function getStandings(division, group = null) {
     };
   });
 
-  return standings.sort(
-    (a, b) =>
-      b.wins - a.wins ||
-      b.roundDifferential - a.roundDifferential ||
-      a.name.localeCompare(b.name)
-  );
+  return standings.sort((a, b) => {
+    if (b.wins !== a.wins) return b.wins - a.wins;
+
+    if (b.roundDifferential !== a.roundDifferential) {
+      return b.roundDifferential - a.roundDifferential;
+    }
+
+    return a.name.localeCompare(b.name);
+  });
 }

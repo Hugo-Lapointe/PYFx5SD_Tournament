@@ -1,7 +1,8 @@
 
 import { useState } from "react";
 import { CalendarDays, Search, Trophy } from "lucide-react";
-import { matches } from "../data/matches";
+
+import useMatches from "../hooks/useMatches";
 import { getTeamById } from "../data/teams";
 import MatchCard from "../components/MatchCard";
 
@@ -24,6 +25,9 @@ export default function Schedule() {
   const [stream, setStream] = useState("all");
   const [search, setSearch] = useState("");
 
+  // Firebase real-time matches
+  const { matches, loading, error } = useMatches();
+
   const dailyMatches = matches.filter(
     (match) => match.date === date
   );
@@ -38,12 +42,14 @@ export default function Schedule() {
 
       const team1 = getTeamById(match.team1Id);
       const team2 = getTeamById(match.team2Id);
+
       const query = search.trim().toLowerCase();
 
       const searchMatch =
         !query ||
-        [team1?.name, team2?.name, match.label]
-          .some((name) => name?.toLowerCase().includes(query));
+        [team1?.name, team2?.name, match.label].some(
+          (name) => name?.toLowerCase().includes(query)
+        );
 
       return divisionMatch && streamMatch && searchMatch;
     })
@@ -57,7 +63,10 @@ export default function Schedule() {
         </p>
 
         <h1>
-          MATCH <span className="gradient-text">SCHEDULE</span>
+          MATCH{" "}
+          <span className="gradient-text">
+            SCHEDULE
+          </span>
         </h1>
 
         <p>
@@ -106,7 +115,9 @@ export default function Schedule() {
           ].map(([value, label]) => (
             <button
               key={value}
-              className={division === value ? "selected" : ""}
+              className={
+                division === value ? "selected" : ""
+              }
               onClick={() => setDivision(value)}
             >
               {label}
@@ -128,6 +139,7 @@ export default function Schedule() {
 
         <div className="team-search">
           <Search size={18} />
+
           <input
             type="text"
             placeholder="Search team..."
@@ -136,6 +148,18 @@ export default function Schedule() {
           />
         </div>
       </div>
+
+      {loading && (
+        <p className="schedule-info-message">
+          Loading live results...
+        </p>
+      )}
+
+      {error && (
+        <p className="schedule-error-message" role="alert">
+          Could not load live results.
+        </p>
+      )}
 
       {filteredMatches.length === 0 ? (
         <div className="teams-empty">
@@ -150,15 +174,24 @@ export default function Schedule() {
           if (stageMatches.length === 0) return null;
 
           return (
-            <section className="schedule-stage" key={stage}>
+            <section
+              className="schedule-stage"
+              key={stage}
+            >
               <div className="schedule-stage-heading">
                 <h2>{stage}</h2>
-                <span>{stageMatches.length} MATCHES</span>
+
+                <span>
+                  {stageMatches.length} MATCHES
+                </span>
               </div>
 
               <div className="matches-grid">
                 {stageMatches.map((match) => (
-                  <MatchCard key={match.id} match={match} />
+                  <MatchCard
+                    key={match.id}
+                    match={match}
+                  />
                 ))}
               </div>
             </section>

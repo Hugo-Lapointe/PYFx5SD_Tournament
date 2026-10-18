@@ -1,127 +1,144 @@
 
 import { getTeamById } from "../data/teams";
-import { Radio } from "lucide-react";
-
-const streams = {
-  pyf: {
-    name: "PYF (Main)",
-    url: "https://twitch.tv/pyfesports",
-  },
-  "5sd": {
-    name: "5SD (Main)",
-    url: "https://twitch.tv/5sdtourneys",
-  },
-  pyf2: {
-    name: "PYF 2",
-    url: "https://twitch.tv/pyfesports2",
-  },
-};
-
-function formatTime(time) {
-  if (!time) return "TBD";
-
-  const [hours, minutes] = time.split(":").map(Number);
-  const period = hours >= 12 ? "PM" : "AM";
-  const hour = hours % 12 || 12;
-
-  return `${hour}:${String(minutes).padStart(2, "0")} ${period}`;
-}
 
 export default function MatchCard({ match }) {
   const team1 = getTeamById(match.team1Id);
   const team2 = getTeamById(match.team2Id);
-  const stream = streams[match.stream];
 
   const completed = match.status === "completed";
+  const isBO3 = match.format === "BO3";
 
-  const renderTeam = (team, score, opponentScore) => {
-    const winner =
-      completed &&
-      typeof score === "number" &&
-      typeof opponentScore === "number" &&
-      score > opponentScore;
+  const score1 = isBO3
+    ? match.score1
+    : match.rounds1 ?? match.score1;
 
-    return (
-      <div className={`match-team ${winner ? "winner" : ""}`}>
-        <span
-          className="match-team-dot"
-          style={{
-            background: team?.color || "#596177",
-            boxShadow: team
-              ? `0 0 10px ${team.color}66`
-              : "none",
-          }}
-        />
+  const score2 = isBO3
+    ? match.score2
+    : match.rounds2 ?? match.score2;
 
-        <span className="match-team-name">
-          {team?.name || "To Be Determined"}
-        </span>
+  const team1Won =
+    completed &&
+    typeof match.score1 === "number" &&
+    typeof match.score2 === "number" &&
+    match.score1 > match.score2;
 
-        {completed && (
-          <strong className="match-score">{score ?? "-"}</strong>
-        )}
-      </div>
-    );
-  };
+  const team2Won =
+    completed &&
+    typeof match.score1 === "number" &&
+    typeof match.score2 === "number" &&
+    match.score2 > match.score1;
 
   return (
     <article className="match-card">
       <div className="match-card-header">
-        <span
-          className={`match-division ${
-            match.division === "upper"
-              ? "upper-text"
-              : "lower-text"
-          }`}
-        >
-          {match.division === "upper"
-            ? "Upper Division"
-            : "Lower Division"}
-        </span>
+        <div className="match-card-meta">
+          <span className="match-card-time">
+            {match.time}
+          </span>
 
-        <span className="match-stage">
-          {match.stage} · {match.format}
+          <span className="match-card-divider">•</span>
+
+          <span>
+            {match.division === "upper"
+              ? "Upper Division"
+              : "Lower Division"}
+          </span>
+        </div>
+
+        <span
+          className={
+            completed
+              ? "match-status completed"
+              : "match-status scheduled"
+          }
+        >
+          {completed ? "FINAL" : "UPCOMING"}
         </span>
       </div>
 
       <div className="match-card-body">
-        <div className="match-opponents">
-          {match.label && (
-            <span className="playoff-label">
-              {match.label}
-            </span>
-          )}
+        <div
+          className={`match-card-team ${
+            team1Won ? "match-card-winner" : ""
+          }`}
+        >
+          <span
+            className="match-team-dot"
+            style={{
+              backgroundColor: team1?.color || "#8e97b0",
+            }}
+          />
 
-          {renderTeam(team1, match.score1, match.score2)}
-          {renderTeam(team2, match.score2, match.score1)}
+          <span className="match-team-name">
+            {team1?.name || "TBD"}
+          </span>
         </div>
 
-        <div className="match-details">
-          <span className={`match-status ${match.status}`}>
-            {completed
-              ? "FINAL"
-              : match.status === "live"
-              ? "LIVE"
-              : "UPCOMING"}
+        <div className="match-card-center">
+          {completed ? (
+            <div className="match-result-score">
+              <strong>
+                {score1} - {score2}
+              </strong>
+
+              {!isBO3 && match.overtime && (
+                <span className="match-overtime-label">
+                  OT
+                </span>
+              )}
+            </div>
+          ) : (
+            <span className="match-card-vs">VS</span>
+          )}
+        </div>
+
+        <div
+          className={`match-card-team match-card-team-right ${
+            team2Won ? "match-card-winner" : ""
+          }`}
+        >
+          <span className="match-team-name">
+            {team2?.name || "TBD"}
           </span>
 
-          <strong className="match-time">
-            {formatTime(match.time)} ET
-          </strong>
-
-          {stream && (
-            <a
-              className="match-stream"
-              href={stream.url}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Radio size={13} />
-              {stream.name}
-            </a>
-          )}
+          <span
+            className="match-team-dot"
+            style={{
+              backgroundColor: team2?.color || "#8e97b0",
+            }}
+          />
         </div>
       </div>
+
+      <div className="match-card-footer">
+        <div className="match-card-footer-left">
+          <span>{match.stage || "Round Robin"}</span>
+          <span>·</span>
+          <span>{match.format || "BO1"}</span>
+
+          {match.label && (
+            <>
+              <span>·</span>
+              <span>{match.label}</span>
+            </>
+          )}
+        </div>
+
+        <span className="match-card-stream">
+          {match.stream?.toUpperCase() || "TBD"}
+        </span>
+      </div>
+
+      {completed && isBO3 && match.maps?.length > 0 && (
+        <div className="match-card-maps">
+          {match.maps.map((map, index) => (
+            <span key={index}>
+              Map {index + 1}: {map.rounds1}–{map.rounds2}
+              {map.overtime ? " OT" : ""}
+            </span>
+          ))}
+        </div>
+      )}
     </article>
   );
 }

@@ -2,9 +2,15 @@
 import { useState } from "react";
 import { Trophy, Info } from "lucide-react";
 import { getStandings } from "../data/standings";
+import useMatches from "../hooks/useMatches";
 
-function StandingsTable({ division, group = null }) {
-  const standings = getStandings(division, group);
+function StandingsTable({
+  division,
+  group = null,
+  matches,
+}) {
+  const standings = getStandings(matches, division, group);
+
   const qualifyingSpots = division === "upper" ? 8 : 2;
 
   return (
@@ -42,16 +48,22 @@ function StandingsTable({ division, group = null }) {
                     className="standings-team-dot"
                     style={{ background: team.color }}
                   />
+
                   <strong>{team.name}</strong>
                 </div>
               </td>
 
               <td>{team.played}</td>
-              <td className="standings-wins">{team.wins}</td>
-              <td>{team.losses}</td>             
+
+              <td className="standings-wins">
+                {team.wins}
+              </td>
+
+              <td>{team.losses}</td>
+
               <td
                 className={
-                    team.roundDifferential > 0
+                  team.roundDifferential > 0
                     ? "rd-positive"
                     : team.roundDifferential < 0
                     ? "rd-negative"
@@ -72,6 +84,9 @@ function StandingsTable({ division, group = null }) {
 export default function Standings() {
   const [division, setDivision] = useState("upper");
 
+  // Firebase live matches
+  const { matches, loading, error } = useMatches();
+
   const groups = ["A", "B", "C", "D"];
 
   return (
@@ -83,7 +98,9 @@ export default function Standings() {
 
         <h1>
           TOURNAMENT{" "}
-          <span className="gradient-text">STANDINGS</span>
+          <span className="gradient-text">
+            STANDINGS
+          </span>
         </h1>
 
         <p>
@@ -107,6 +124,18 @@ export default function Standings() {
         </button>
       </div>
 
+      {loading && (
+        <p className="standings-info-message">
+          Loading live standings...
+        </p>
+      )}
+
+      {error && (
+        <p className="standings-error-message" role="alert">
+          Could not load live results.
+        </p>
+      )}
+
       {division === "upper" ? (
         <section className="standings-section">
           <div className="standings-section-header">
@@ -121,12 +150,18 @@ export default function Standings() {
             </span>
           </div>
 
-          <StandingsTable division="upper" />
+          <StandingsTable
+            division="upper"
+            matches={matches}
+          />
         </section>
       ) : (
         <div className="standings-groups">
           {groups.map((group) => (
-            <section className="standings-section" key={group}>
+            <section
+              className="standings-section"
+              key={group}
+            >
               <div className="standings-section-header">
                 <div>
                   <h2>Group {group}</h2>
@@ -142,6 +177,7 @@ export default function Standings() {
               <StandingsTable
                 division="lower"
                 group={group}
+                matches={matches}
               />
             </section>
           ))}
@@ -150,6 +186,7 @@ export default function Standings() {
 
       <div className="standings-notice">
         <Info size={18} />
+
         <p>
           Standings update from completed Round Robin
           results. Highlighted positions indicate
