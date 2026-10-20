@@ -12,6 +12,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ManageMatches from "./pages/admin/ManageMatches";
 import ManageTeams from "./pages/admin/ManageTeams";
 import ScrollToTop from "./components/ScrollToTop";
+import ManageStandingsPlayoffs from "./pages/admin/ManageStandingsPlayoffs";
+import TournamentSimulator from "./pages/admin/TournamentSimulator";
 
 function ComingSoon({ title }) {
   return (
@@ -56,6 +58,22 @@ export default function App() {
           element={
             <ProtectedRoute>
               <ManageTeams />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/standings"
+          element={
+            <ProtectedRoute>
+              <ManageStandingsPlayoffs />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/simulator"
+          element={
+            <ProtectedRoute>
+              <TournamentSimulator />
             </ProtectedRoute>
           }
         />

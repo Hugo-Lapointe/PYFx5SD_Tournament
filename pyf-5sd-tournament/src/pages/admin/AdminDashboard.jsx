@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   ArrowUpRight,
   ChevronRight,
+  FlaskConical,
 } from "lucide-react";
 
 import { auth, db } from "../../firebase";
@@ -106,8 +107,19 @@ export default function AdminDashboard() {
     navigate(path);
   };
 
+  const handleManagementKeyDown = (event, path) => {
+    if (
+      event.key === "Enter" ||
+      event.key === " "
+    ) {
+      event.preventDefault();
+      openManagement(path);
+    }
+  };
+
   return (
     <main className="container admin-dashboard">
+      {/* DASHBOARD HEADER */}
       <div className="admin-dashboard-top">
         <div>
           <p className="admin-eyebrow">
@@ -134,6 +146,7 @@ export default function AdminDashboard() {
         </button>
       </div>
 
+      {/* TOURNAMENT STATISTICS */}
       <div className="admin-stats-grid">
         {stats.map((stat) => {
           const Icon = stat.icon;
@@ -157,11 +170,13 @@ export default function AdminDashboard() {
         })}
       </div>
 
+      {/* MANAGEMENT HEADER */}
       <div className="admin-section-heading">
         <LayoutDashboard size={20} />
         <h2>Management</h2>
       </div>
 
+      {/* MANAGEMENT CARDS */}
       <div className="admin-management-grid">
         {/* MATCH MANAGEMENT */}
         <div
@@ -169,15 +184,9 @@ export default function AdminDashboard() {
           onClick={() => openManagement("/admin/matches")}
           role="link"
           tabIndex={0}
-          onKeyDown={(event) => {
-            if (
-              event.key === "Enter" ||
-              event.key === " "
-            ) {
-              event.preventDefault();
-              openManagement("/admin/matches");
-            }
-          }}
+          onKeyDown={(event) =>
+            handleManagementKeyDown(event, "/admin/matches")
+          }
         >
           <div className="admin-management-icon">
             <Swords size={24} />
@@ -205,15 +214,9 @@ export default function AdminDashboard() {
           onClick={() => openManagement("/admin/teams")}
           role="link"
           tabIndex={0}
-          onKeyDown={(event) => {
-            if (
-              event.key === "Enter" ||
-              event.key === " "
-            ) {
-              event.preventDefault();
-              openManagement("/admin/teams");
-            }
-          }}
+          onKeyDown={(event) =>
+            handleManagementKeyDown(event, "/admin/teams")
+          }
         >
           <div className="admin-management-icon">
             <Users size={24} />
@@ -235,8 +238,16 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* FUTURE PLAYOFF MANAGEMENT */}
-        <div className="admin-management-card">
+        {/* STANDINGS & PLAYOFFS MANAGEMENT */}
+        <div
+          className="admin-management-card admin-management-clickable"
+          onClick={() => openManagement("/admin/standings")}
+          role="link"
+          tabIndex={0}
+          onKeyDown={(event) =>
+            handleManagementKeyDown(event, "/admin/standings")
+          }
+        >
           <div className="admin-management-icon">
             <Trophy size={24} />
           </div>
@@ -245,22 +256,60 @@ export default function AdminDashboard() {
 
           <p>
             Review qualification positions,
-            playoff brackets, and match advancement.
+            manage playoff seeding, update brackets,
+            and advance winning teams.
           </p>
 
-          <span className="admin-coming-soon">
-            PLANNED
-          </span>
+          <div className="admin-management-footer">
+            <span className="admin-management-active">
+              OPEN MANAGEMENT
+            </span>
+
+            <ChevronRight size={18} />
+          </div>
+        </div>
+
+        {/* TOURNAMENT SIMULATOR */}
+        <div
+          className="admin-management-card admin-management-clickable"
+          onClick={() => openManagement("/admin/simulator")}
+          role="link"
+          tabIndex={0}
+          onKeyDown={(event) =>
+            handleManagementKeyDown(event, "/admin/simulator")
+          }
+        >
+          <div className="admin-management-icon">
+            <FlaskConical size={24} />
+          </div>
+
+          <h3>Tournament Simulator</h3>
+
+          <p>
+            Simulate all tournament results, standings,
+            playoff brackets, and champions without
+            modifying Firebase.
+          </p>
+
+          <div className="admin-management-footer">
+            <span className="admin-management-active">
+              OPEN SIMULATOR
+            </span>
+
+            <ChevronRight size={18} />
+          </div>
         </div>
       </div>
 
+      {/* FIREBASE NOTE */}
       <div className="admin-dashboard-note">
         <ArrowUpRight size={18} />
 
         <p>
-          Match results and player rosters are managed
-          through Firebase Firestore. Changes saved in
-          the admin panel appear on the public website.
+          Match results, player rosters, and playoff
+          assignments are managed through Firebase
+          Firestore. Changes saved in the admin panel
+          appear on the public website.
         </p>
       </div>
     </main>

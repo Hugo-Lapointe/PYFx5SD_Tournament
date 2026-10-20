@@ -28,6 +28,17 @@ export default function MatchCard({ match }) {
     typeof match.score2 === "number" &&
     match.score2 > match.score1;
 
+  // Announced maps from Firebase
+  const mapCount = isBO3 ? 3 : 1;
+
+  const announcedMaps = Array.isArray(match.selectedMaps)
+    ? match.selectedMaps.slice(0, mapCount)
+    : [];
+
+  const hasAnnouncedMap = announcedMaps.some(
+    (map) => typeof map === "string" && map.trim()
+  );
+
   return (
     <article className="match-card">
       <div className="match-card-header">
@@ -45,15 +56,35 @@ export default function MatchCard({ match }) {
           </span>
         </div>
 
-        <span
-          className={
-            completed
-              ? "match-status completed"
-              : "match-status scheduled"
-          }
-        >
-          {completed ? "FINAL" : "UPCOMING"}
-        </span>
+        {/* MAPS + STATUS */}
+        <div className="match-card-header-right">
+          {hasAnnouncedMap && (
+            <div className="match-card-header-maps">
+              {Array.from(
+                { length: mapCount },
+                (_, index) => (
+                  <span
+                    key={index}
+                    className="match-card-map-badge"
+                    title={`Map ${index + 1}`}
+                  >
+                    {announcedMaps[index]?.trim() || "TBD"}
+                  </span>
+                )
+              )}
+            </div>
+          )}
+
+          <span
+            className={
+              completed
+                ? "match-status completed"
+                : "match-status scheduled"
+            }
+          >
+            {completed ? "FINAL" : "UPCOMING"}
+          </span>
+        </div>
       </div>
 
       <div className="match-card-body">
@@ -88,7 +119,9 @@ export default function MatchCard({ match }) {
               )}
             </div>
           ) : (
-            <span className="match-card-vs">VS</span>
+            <span className="match-card-vs">
+              VS
+            </span>
           )}
         </div>
 
@@ -129,6 +162,7 @@ export default function MatchCard({ match }) {
         </span>
       </div>
 
+      {/* BO3 RESULT SCORES */}
       {completed && isBO3 && match.maps?.length > 0 && (
         <div className="match-card-maps">
           {match.maps.map((map, index) => (

@@ -40,19 +40,42 @@ export default function useMatches() {
 
       if (!saved) return match;
 
-      // Only merge result fields. The local schedule remains authoritative.
       return {
         ...match,
+
+        // PLAYOFF TEAM ASSIGNMENTS
+        // Teams assigned in Admin will appear on the public Schedule.
+        team1Id: saved.team1Id ?? match.team1Id,
+        team2Id: saved.team2Id ?? match.team2Id,
+
+        // MATCH STATUS
         status: saved.status ?? match.status,
+
+        // MATCH SCORES
         score1: saved.score1 ?? match.score1,
         score2: saved.score2 ?? match.score2,
+
+        // ROUND SCORES
         rounds1: saved.rounds1 ?? match.rounds1 ?? null,
         rounds2: saved.rounds2 ?? match.rounds2 ?? null,
+
+        // OVERTIME
         overtime: saved.overtime ?? false,
+
+        // PER-MAP RESULTS
         maps: saved.maps ?? [],
+
+        // ANNOUNCED MAPS
+        // Separate from actual match results.
+        selectedMaps:
+          saved.selectedMaps ?? match.selectedMaps ?? [],
       };
     });
   }, [firebaseResults]);
 
-  return { matches, loading, error };
+  return {
+    matches,
+    loading,
+    error,
+  };
 }

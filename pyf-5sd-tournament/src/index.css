@@ -3432,3 +3432,91 @@ button {
   border-radius: 50%;
   background: var(--team-color);
 }
+
+/* Standings & Playoffs Admin — isolated from public page styling */
+.asp-page { padding-bottom: 80px; }
+.asp-page .page-heading { margin-top: 25px; }
+.asp-panel { margin: 24px 0; padding: 24px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+.asp-panel h2 { display: flex; align-items: center; gap: 10px; font-size: 20px; margin: 0 0 16px; }
+.asp-panel h3 { margin: 20px 0 10px; font-size: 15px; }
+.asp-muted { color: var(--muted); font-size: 13px; line-height: 1.65; margin: 10px 0 16px; }
+.asp-seed-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+.asp-seed { display: flex; flex-direction: column; gap: 7px; font-size: 13px; color: var(--muted); }
+.asp-seed select { width: 100%; min-width: 0; background: var(--background); color: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 11px; }
+.asp-action { display: inline-flex; align-items: center; gap: 8px; padding: 11px 16px; margin-top: 10px; border: 1px solid var(--coral); background: color-mix(in srgb, var(--coral) 12%, transparent); color: var(--coral); border-radius: 8px; cursor: pointer; font-weight: 700; }
+.asp-action:hover:not(:disabled) { background: color-mix(in srgb, var(--coral) 22%, transparent); }
+.asp-action:disabled { opacity: .5; cursor: not-allowed; }
+.asp-match-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.asp-match { border: 1px solid var(--border); border-radius: 10px; padding: 15px; display: flex; flex-direction: column; gap: 12px; background: var(--background); }
+.asp-match > div { display: flex; flex-direction: column; gap: 4px; }
+.asp-match strong { font-size: 13px; }
+.asp-match small { color: var(--muted); }
+.asp-match > span { font-size: 14px; }
+.asp-match b { color: var(--muted); margin: 0 5px; font-size: 11px; }
+.asp-error, .asp-success { display: flex; align-items: center; gap: 8px; padding: 12px; border: 1px solid var(--coral); border-radius: 8px; color: var(--coral); margin: 12px 0; }
+.asp-success { border-color: var(--blue); color: var(--blue); }
+.asp-champion { display: flex; gap: 10px; align-items: center; color: var(--gold); font-weight: 700; }
+@media (max-width: 700px) { .asp-panel { padding: 16px; } .asp-seed-grid, .asp-match-grid { grid-template-columns: 1fr; } }
+
+/* Admin map announcements */
+.admin-announced-maps { display: grid; gap: 12px; }
+.admin-announced-map { display: grid; gap: 7px; }
+.admin-announced-map span { color: var(--muted); font-size: 0.85rem; font-weight: 600; }
+.admin-announced-map select { width: 100%; padding: 11px 12px; color: #fff; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+.admin-announced-map select:focus { outline: 1px solid var(--blue); }
+
+/* Public schedule map announcements */
+.match-card-announced-maps { display: flex; flex-wrap: wrap; gap: 8px 14px; padding: 12px 16px; border-top: 1px solid var(--border); }
+.match-card-announced-maps > span { display: inline-flex; align-items: center; gap: 7px; font-size: 0.83rem; color: var(--muted); }
+.match-card-announced-maps strong { color: var(--blue); font-size: 0.72rem; letter-spacing: 0.04em; }
+
+
+/* Announced maps beside UPCOMING / FINAL */
+
+.match-card-header-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.match-card-header-maps {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.match-card-map-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 8px;
+  border: 1px solid rgba(120, 184, 255, 0.25);
+  border-radius: 6px;
+  background: rgba(120, 184, 255, 0.09);
+  color: #78b8ff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 600px) {
+  .match-card-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .match-card-header-right {
+    margin-left: auto;
+  }
+
+  .match-card-map-badge {
+    font-size: 0.62rem;
+    padding: 4px 6px;
+  }
+}

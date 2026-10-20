@@ -7,7 +7,8 @@ import {
   onSnapshot,
   serverTimestamp,
   setDoc,
-  deleteDoc,
+  updateDoc,
+  deleteField,
 } from "firebase/firestore";
 import {
   ArrowLeft,
@@ -29,6 +30,11 @@ import {
 
 const emptyMap = () => ({ rounds1: "", rounds2: "" });
 
+const VALORANT_MAPS = [
+  "Abyss", "Ascent", "Bind", "Breeze", "Corrode", "Fracture",
+  "Haven", "Icebox", "Lotus", "Pearl", "Split", "Sunset",
+];
+
 const formatDate = (date) =>
   new Date(`${date}T12:00:00`).toLocaleDateString("en-CA", {
     weekday: "short",
@@ -43,6 +49,8 @@ export default function ManageMatches() {
   const [divisionFilter, setDivisionFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [mapScores, setMapScores] = useState([emptyMap()]);
+  const [selectedMaps, setSelectedMaps] = useState(["", "", ""]);
+  const [savingMaps, setSavingMaps] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -133,6 +141,8 @@ export default function ManageMatches() {
     setError("");
 
     const saved = savedResults[match.id];
+    const announced = saved?.selectedMaps || match.selectedMaps || [];
+    setSelectedMaps(Array.from({ length: 3 }, (_, index) => announced[index] || ""));
 
     if (saved?.maps?.length) {
       setMapScores(
@@ -180,6 +190,38 @@ export default function ManageMatches() {
     );
   };
 
+  const saveSelectedMaps = async () => {
+    if (!selectedMatch) return;
+
+    const count = selectedMatch.format === "BO3" ? 3 : 1;
+    const announced = selectedMaps.slice(0, count);
+    const nonempty = announced.filter(Boolean);
+    if (new Set(nonempty).size !== nonempty.length) {
+      setError("The same map cannot be assigned twice in one match.");
+      return;
+    }
+
+    setSavingMaps(true);
+    setError("");
+    setMessage("");
+    try {
+      await setDoc(
+        doc(db, "matches", selectedMatch.id),
+        {
+          selectedMaps: announced,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
+      setMessage("Map announcements saved and published to the schedule!");
+    } catch (err) {
+      console.error(err);
+      setError("Could not save map announcements. Check Firebase permissions.");
+    } finally {
+      setSavingMaps(false);
+    }
+  };
+
   const saveResult = async () => {
     if (!selectedMatch || !resultPreview?.valid) return;
 
@@ -194,10 +236,14 @@ export default function ManageMatches() {
         ...resultData
       } = resultPreview;
 
-      await setDoc(doc(db, "matches", selectedMatch.id), {
-        ...resultData,
-        updatedAt: serverTimestamp(),
-      });
+      await setDoc(
+        doc(db, "matches", selectedMatch.id),
+        {
+          ...resultData,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true }
+      );
 
       setMessage("Match result saved successfully!");
     } catch (err) {
@@ -208,6 +254,7 @@ export default function ManageMatches() {
     }
   };
 
+  
   const resetResult = async () => {
     if (!selectedMatch) return;
 
@@ -222,7 +269,17 @@ export default function ManageMatches() {
     setMessage("");
 
     try {
-      await deleteDoc(doc(db, "matches", selectedMatch.id));
+      await updateDoc(doc(db, "matches", selectedMatch.id), {
+        status: "scheduled",
+        score1: deleteField(),
+        score2: deleteField(),
+        rounds1: deleteField(),
+        rounds2: deleteField(),
+        maps: deleteField(),
+        overtime: deleteField(),
+        updatedAt: serverTimestamp(),
+      });
+
       setMapScores([emptyMap()]);
       setMessage("Result removed. Match is scheduled again.");
     } catch (err) {
@@ -232,6 +289,7 @@ export default function ManageMatches() {
       setSaving(false);
     }
   };
+
 
   return (
     <main className="container admin-matches-page">
@@ -403,6 +461,47 @@ export default function ManageMatches() {
                   }} />
                   <strong>{selectedTeam2?.name || "TBD"}</strong>
                 </div>
+              </div>
+
+              {/* Map announcements are separate from result scores. */}
+              <div className="admin-map-editor">
+                <h3>Announced Maps</h3>
+                <p style={{ color: "var(--muted)", marginBottom: 16 }}>
+                  Select maps when announced. Unselected slots show TBD on the public schedule.
+                </p>
+                <div className="admin-announced-maps">
+                  {Array.from({ length: isBO3 ? 3 : 1 }, (_, index) => (
+                    <label className="admin-announced-map" key={index}>
+                      <span>Map {index + 1}</span>
+                      <select
+                        value={selectedMaps[index] || ""}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          setSelectedMaps((previous) =>
+                            previous.map((item, i) => i === index ? value : item)
+                          );
+                          setError("");
+                          setMessage("");
+                        }}
+                      >
+                        <option value="">TBD — Not announced</option>
+                        {VALORANT_MAPS.map((name) => (
+                          <option key={name} value={name}>{name}</option>
+                        ))}
+                      </select>
+                    </label>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="admin-save-result"
+                  onClick={saveSelectedMaps}
+                  disabled={savingMaps || saving}
+                  style={{ marginTop: 16 }}
+                >
+                  <Save size={17} />
+                  {savingMaps ? "Saving maps..." : "Save Map Announcements"}
+                </button>
               </div>
 
               <div className="admin-map-editor">
